@@ -1,0 +1,22 @@
+<section style="padding: 2rem; background: #f9f9f9;">
+    <h2>Locally sourced, traditionally prepared.</h2>
+    <p>Get notified when fresh cuts become available for pre-order.</p>
+
+    <form action="/subscribe" method="POST" style="margin-top: 1rem;">
+        <label>How would you like to be notified?</label><br><br>
+
+        <input type="radio" id="email" name="notify" value="email" checked>
+        <label for="email">Email notifications</label><br>
+
+        <input type="radio" id="sms" name="notify" value="sms">
+        <label for="sms">Text (SMS) notifications</label><br>
+
+        <input type="radio" id="both" name="notify" value="both">
+        <label for="both">Both email and text</label><br><br>
+
+        <label for="email_address"><strong>Email Address *</strong></label><br>
+        <input type="email" id="email_address" name="email_address" required style="width: 300px; padding: 0.5rem;"><br><br>
+
+        <button type="submit" style="padding: 0.5rem 1rem;">Subscribe for Email Updates</button>
+    </form>
+</section>
