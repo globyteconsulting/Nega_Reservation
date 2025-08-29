@@ -1671,7 +1671,7 @@
              * @param {string} messageBody - The content of the SMS.
              */
             async function sendSmsNotification(phoneNumber, messageBody) {
-                const TWILIO_FUNCTION_URL = 'https://globyteconsulting-9498.twil.io/app'; 
+                const TWILIO_FUNCTION_URL = 'YOUR_TWILIO_FUNCTION_URL'; // <<<=== REPLACE THIS WITH YOUR TWILIO FUNCTION URL
 
                 if (TWILIO_FUNCTION_URL === 'YOUR_TWILIO_FUNCTION_URL') {
                     console.error("Error: TWILIO_FUNCTION_URL is not configured. Please set it to your deployed Twilio Function URL.");
