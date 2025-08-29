@@ -1,0 +1,2146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nega Butchery Reservation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #1A202C, #4A141A); /* Dark blue/gray to dark red gradient */
+            color: #E2E8F0; /* Light gray text for the body */
+        }
+        .primary-button {
+            background-color: #EF4444; /* Red */
+            color: white;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .primary-button:hover {
+            background-color: #DC2626; /* Darker red on hover */
+        }
+        .primary-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5); /* Focus ring for primary red */
+        }
+        .meat-item.selected {
+            background-color: #FED7D7; /* Light red for selected background */
+            border: 2px solid #EF4444; /* Primary red border */
+        }
+        .meat-item .select-btn {
+            color: #EF4444; /* Primary red for select text */
+        }
+        .form-radio:checked {
+            border-color: #EF4444; /* Primary red for radio button */
+            background-color: #EF4444; /* Primary red for radio button */
+        }
+        .form-radio:checked + span {
+            color: #1a202c; /* dark gray for selected text inside white cards */
+        }
+        .status-tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* Tailwind's rounded-full */
+            font-size: 0.75rem; /* Tailwind's text-xs */
+            font-weight: 600; /* Tailwind's font-semibold */
+            text-transform: uppercase;
+        }
+        .status-accepted { background-color: #d1fae5; color: #065f46; } /* green-100, green-800 */
+        .status-pending { background-color: #fef3c7; color: #92400e; } /* amber-100, amber-800 */
+        .status-ready_for_pickup { background-color: #bfdbfe; color: #1e40af; } /* blue-100, blue-800 */
+        .status-out_of_stock { background-color: #fee2e2; color: #991b1b; } /* red-100, red-800 */
+        .status-in_stock { background-color: #d1fae5; color: #065f46; } /* green-100, green-800 */
+        .header-title {
+            color: #FFFFFF; /* White for main title */
+        }
+        .selected-message {
+            background-color: #FED7D7; /* Light red for selected message background */
+            color: #7F1D1D; /* Darker red for selected message text */
+        }
+        /* Specific adjustments for elements within white cards */
+        .bg-white .text-gray-800 {
+            color: #1a202c; /* Ensure dark text on white cards */
+        }
+        .bg-white .text-gray-600 {
+            color: #4A5568; /* Ensure dark text on white cards */
+        }
+        .bg-white .text-gray-700 {
+            color: #2D3748; /* Ensure dark text on white cards */
+        }
+        .bg-white .text-sm {
+            color: #4A5568; /* Ensure dark text on white cards */
+        }
+        .bg-white input[type="text"],
+        .bg-white input[type="tel"],
+        .bg-white input[type="email"],
+        .bg-white input[type="number"],
+        .bg-white input[type="password"] { /* Added password input here */
+            border-color: #E2E8F0; /* Light gray border for inputs */
+            color: #1a202c; /* Make input text dark for visibility */
+        }
+        .bg-white input:focus {
+             border-color: #EF4444; /* Red border on focus */
+             box-shadow: 0 0 0 1px #EF4444;
+        }
+        .bg-white .form-radio {
+            border-color: #CBD5E0; /* Light gray border for unchecked radio */
+        }
+        /* New rule for select elements within white cards */
+        .bg-white select,
+        .bg-white select option { /* Ensures select and its options have dark text */
+            color: #1a202c;
+        }
+        #customer-view-btn.bg-gray-200,
+        #admin-view-btn.bg-gray-200 {
+            background-color: #4A5568; /* Darker gray for inactive button */
+            color: white;
+        }
+        #customer-view-btn.bg-gray-200:hover,
+        #admin-view-btn.bg-gray-200:hover {
+            background-color: #2D3748; /* Even darker gray on hover */
+        }
+        #customer-view-btn.primary-button,
+        #admin-view-btn.primary-button {
+            color: white !important; /* Ensure text is white for active button */
+        }
+        .text-red-500 {
+            color: #EF4444; /* Keep the logo red */
+        }
+        /* Smaller button styling */
+        .btn-sm {
+            padding: 0.5rem 0.75rem; /* Reduced padding */
+            font-size: 0.875rem; /* Smaller font size (text-sm) */
+        }
+        .btn-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none; /* Disable pointer events */
+        }
+        /* Modal specific styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be responsive */
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #1A202C; /* Dark text for modal content */
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #1A202C;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 antialiased">
+
+    <!-- Header Component -->
+    <header class="flex flex-col items-center p-6 bg-transparent shadow-none rounded-lg mx-auto max-w-4xl mt-6">
+        <div class="flex items-center space-x-2 mb-2">
+            <!-- Logo Image -->
+            <img src="logo/nega.png" alt="Nega Butchery Logo" class="h-16 w-auto">
+            <h1 class="text-3xl font-bold header-title">Nega Butchery</h1>
+        </div>
+        <p class="text-sm text-gray-400 mb-4">Online Order Reservation System</p>
+        <div class="flex space-x-4">
+            <button id="customer-view-btn" class="px-6 py-2 primary-button rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75">
+                Customer View
+            </button>
+            <button id="admin-view-btn" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-full shadow-md hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                Admin View
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <div id="app-container">
+        <!-- Customer View Section -->
+        <main id="customer-view" class="container mx-auto mt-8 max-w-4xl">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        Make a Reservation <span role="img" aria-label="meat emoji" class="ml-2">🥩</span>
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <label for="category-filter" class="text-sm font-medium text-gray-700">Filter by Category:</label>
+                        <select id="category-filter" class="mt-1 block w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
+                            <option value="all">All Categories</option>
+                            <!-- Categories will be populated here by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Meat Items Grid -->
+                <div id="meat-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Meat items will be injected here by JavaScript -->
+                </div>
+
+                <!-- Reservation Form -->
+                <div id="reservation-form-container" class="mt-8 p-6 bg-white shadow-md rounded-lg max-w-2xl mx-auto hidden">
+                    <div class="selected-message p-3 rounded-md text-center font-medium mb-6">
+                        You've selected: <span id="selected-meat-names"></span>
+                    </div>
+
+                    <form id="reservation-form" class="space-y-4">
+                        <div>
+                            <label for="yourName" class="block text-sm font-medium text-gray-700">Your Name</label>
+                            <input
+                                type="text"
+                                id="yourName"
+                                name="yourName"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number (Primary)</label>
+                            <input
+                                type="tel"
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Get Notified</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input
+                                        type="radio"
+                                        class="form-radio h-4 w-4"
+                                        name="getNotified"
+                                        value="Yes"
+                                        checked
+                                    />
+                                    <span class="ml-2 text-gray-700">Yes</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input
+                                        type="radio"
+                                        class="form-radio h-4 w-4"
+                                        name="getNotified"
+                                        value="No"
+                                    />
+                                    <span class="ml-2 text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button
+                            type="submit"
+                            class="w-full px-4 py-2 primary-button font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                        >
+                            Submit Reservation
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Subscription Section (Customer View) -->
+            <div class="mt-8 p-6 bg-white shadow-md rounded-lg max-w-2xl mx-auto">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Get Notified About New Products!</h3>
+                <p class="text-gray-600 mb-4">Enter your name and phone number to receive SMS notifications when we add exciting new items to our selection.</p>
+                <form id="subscribe-form" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <input type="text" id="subscriber-name" class="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm" placeholder="Your Name" required />
+                    <input
+                        type="tel"
+                        id="subscriber-phone"
+                        class="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        placeholder="e.g., +15551234567"
+                        required
+                    />
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-purple-600 text-white font-semibold rounded-md shadow-md hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                    >
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+            <!-- End Subscription Section -->
+
+            <!-- Footer for Customer View -->
+            <footer class="mt-12 py-6 text-center text-gray-400 text-sm">
+                <p>&copy; 2025 Nega Butchery. All rights reserved.</p>
+                <p>
+                    <a href="#" class="text-red-300 hover:text-red-500 transition-colors">Privacy Policy</a> |
+                    <a href="#" class="text-red-300 hover:text-red-500 transition-colors">Terms of Service</a>
+                </p>
+            </footer>
+        </main>
+
+        <!-- Admin Login Section -->
+        <main id="admin-login" class="container mx-auto mt-8 max-w-sm hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Admin Login</h2>
+                <form id="admin-login-form" class="space-y-4">
+                    <div>
+                        <label for="admin-username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <input
+                            type="text"
+                            id="admin-username"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            placeholder="Enter Admin Username"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label for="admin-password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input
+                            type="password"
+                            id="admin-password"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            placeholder="Enter Admin Password"
+                            required
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full px-4 py-2 primary-button font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                    >
+                        Login
+                    </button>
+                    <p id="login-error-message" class="text-red-500 text-sm mt-2 hidden">Invalid username or password.</p>
+                </form>
+            </div>
+        </main>
+
+        <!-- Admin View Section -->
+        <main id="admin-view" class="container mx-auto mt-8 max-w-4xl hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        Admin Dashboard <span role="img" aria-label="wrench emoji" class="ml-2">🔧</span>
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button id="change-password-btn" class="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition-colors">
+                            Change Username/Password
+                        </button>
+                        <button id="admin-logout-btn" class="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition-colors">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-6">Manage products and process reservations.</p>
+
+                <!-- Admin User Management Section (only visible to 'manager' role) -->
+                <div id="admin-management-section">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        Admin User Management <span role="img" aria-label="gear emoji" class="ml-2">⚙️</span>
+                    </h3>
+                    <p class="text-gray-600 mb-6">Add or remove admin accounts.</p>
+                    <div class="flex space-x-4 mb-8">
+                        <button id="add-admin-btn" class="px-4 py-2 bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 transition-colors">
+                            Add New Admin
+                        </button>
+                        <button id="remove-admin-btn" class="px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition-colors">
+                            Remove Admin
+                        </button>
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                </div>
+                <!-- End Admin User Management Section -->
+
+                <!-- Admin Subscribers Management Section (only visible to 'manager' role) -->
+                <div id="admin-subscribers-section" class="hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        Subscribers <span role="img" aria-label="mobile phone emoji" class="ml-2">📱</span>
+                    </h3>
+                    <p class="text-gray-600 mb-4">View and manage phone number subscribers for new product notifications.</p>
+                    <div id="subscribers-list" class="bg-gray-50 p-4 rounded-md shadow-inner mb-8">
+                        <!-- Subscribers will be loaded here -->
+                        <p class="text-gray-500 italic">No subscribers yet.</p>
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                </div>
+                <!-- End Admin Subscribers Management Section -->
+
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Product Management</h3>
+                <p class="text-gray-600 mb-6">Toggle "Out of Stock" status for each product.</p>
+
+                <!-- Product Management Actions -->
+                <div class="flex space-x-4 mb-8">
+                    <button id="add-product-btn" class="px-4 py-2 bg-green-600 text-white rounded-md shadow-md hover:bg-green-700 transition-colors">
+                        Add New Product
+                    </button>
+                    <button id="remove-product-btn" class="px-4 py-2 bg-red-600 text-white rounded-md shadow-md hover:bg-red-700 transition-colors">
+                        Remove Product
+                    </button>
+                </div>
+
+                <!-- Product Management Grid -->
+                <div id="product-management-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                    <!-- Product management items will be injected here by JavaScript -->
+                </div>
+
+                <hr class="my-8 border-gray-200">
+
+
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    Current Reservations <span role="img" aria-label="clipboard emoji" class="ml-2">📋</span>
+                </h3>
+                <!-- Reservations List -->
+                <div id="reservations-list" class="space-y-6">
+                    <!-- Reservations will be injected here by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Change Username/Password Modal -->
+    <div id="change-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Change Username / Password</h2>
+                <span class="close-button" id="close-password-modal">&times;</span>
+            </div>
+            <form id="change-password-form" class="space-y-4">
+                <div>
+                    <label for="current-username-display" class="block text-sm font-medium text-gray-700">Current Username</label>
+                    <input
+                        type="text"
+                        id="current-username-display"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 cursor-not-allowed sm:text-sm"
+                        readonly
+                    />
+                </div>
+                <div>
+                    <label for="new-username-input" class="block text-sm font-medium text-gray-700">New Username</label>
+                    <input
+                        type="text"
+                        id="new-username-input"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="current-password" class="block text-sm font-medium text-gray-700">Current Password</label>
+                    <input
+                        type="password"
+                        id="current-password"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-700">New Password</label>
+                    <input
+                        type="password"
+                        id="new-password"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="confirm-new-password" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                    <input
+                        type="password"
+                        id="confirm-new-password"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <p id="password-change-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                <button
+                    type="submit"
+                    class="w-full px-4 py-2 primary-button font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                >
+                    Update Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Admin Modal -->
+    <div id="add-admin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Admin</h2>
+                <span class="close-button" id="close-add-admin-modal">&times;</span>
+            </div>
+            <form id="add-admin-form" class="space-y-4">
+                <div>
+                    <label for="new-admin-username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input
+                        type="text"
+                        id="new-admin-username"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="new-admin-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input
+                        type="password"
+                        id="new-admin-password"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="confirm-new-admin-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirm-new-admin-password"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <p id="add-admin-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                <button
+                    type="submit"
+                    class="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition-colors"
+                >
+                    Add Admin
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Remove Admin Modal -->
+    <div id="remove-admin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Remove Admin</h2>
+                <span class="close-button" id="close-remove-admin-modal">&times;</span>
+            </div>
+            <form id="remove-admin-form" class="space-y-4">
+                <div>
+                    <label for="select-admin-to-remove" class="block text-sm font-medium text-gray-700">Select Admin</label>
+                    <select
+                        id="select-admin-to-remove"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    >
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <p id="remove-admin-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                <button
+                    type="submit"
+                    class="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 transition-colors"
+                >
+                    Remove Admin
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Product</h2>
+                <span class="close-button" id="close-add-product-modal">&times;</span>
+            </div>
+            <form id="add-product-form" class="space-y-4">
+                <div>
+                    <label for="new-product-name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input
+                        type="text"
+                        id="new-product-name"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="new-product-category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select
+                        id="new-product-category"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    >
+                        <option value="">-- Select Category --</option>
+                        <option value="Kurt">Kurt</option>
+                        <option value="Tibs">Tibs</option>
+                        <option value="Wot">Wot</option>
+                        <option value="Kitfo">Kitfo</option>
+                        <option value="Kikil">Kikil</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="new-product-price" class="block text-sm font-medium text-gray-700">Price (per unit)</label>
+                    <input
+                        type="number"
+                        id="new-product-price"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        placeholder="e.g., 150.00"
+                        step="0.01"
+                        min="0"
+                        required
+                    />
+                </div>
+                <p id="add-product-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                <button
+                    type="submit"
+                    class="w-full px-4 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition-colors"
+                >
+                    Add Product
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Product</h2>
+                <span class="close-button" id="close-edit-product-modal">&times;</span>
+            </div>
+            <form id="edit-product-form" class="space-y-4">
+                <div>
+                    <label for="edit-product-select" class="block text-sm font-medium text-gray-700">Select Product</label>
+                    <select
+                        id="edit-product-select"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    >
+                        <option value="">-- Select a product --</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="edit-product-name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input
+                        type="text"
+                        id="edit-product-name"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="edit-product-category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select
+                        id="edit-product-category"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    >
+                        <option value="">-- Select Category --</option>
+                        <option value="Kurt">Kurt</option>
+                        <option value="Tibs">Tibs</option>
+                        <option value="Wot">Wot</option>
+                        <option value="Kitfo">Kitfo</option>
+                        <option value="Kikil">Kikil</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="edit-product-price" class="block text-sm font-medium text-gray-700">Price (per unit)</label>
+                    <input
+                        type="number"
+                        id="edit-product-price"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        placeholder="e.g., 150.00"
+                        step="0.01"
+                        min="0"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="edit-product-image-url" class="block text-sm font-medium text-gray-700">Image URL</label>
+                    <input
+                        type="url"
+                        id="edit-product-image-url"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        placeholder="e.g., https://placehold.co/150x150"
+                        required
+                    />
+                    <p class="text-xs text-gray-500 mt-1">Provide a public URL for the image.</p>
+                </div>
+                <p id="edit-product-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                <button
+                    type="submit"
+                    class="w-full px-4 py-2 primary-button font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75"
+                >
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Remove Product Confirmation Modal -->
+    <div id="remove-product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Remove Product</h2>
+                <span class="close-button" id="close-remove-product-modal">&times;</span>
+            </div>
+            <form id="remove-product-form" class="space-y-4">
+                <div>
+                    <label for="select-product-to-remove" class="block text-sm font-medium text-gray-700">Select Product to Remove</label>
+                    <select
+                        id="select-product-to-remove"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        required
+                    >
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <p id="remove-product-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                <button
+                    type="submit"
+                    class="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 transition-colors"
+                >
+                    Confirm Remove Product
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Global Feedback Message -->
+    <div id="feedback-message" class="fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 hidden"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuration for Admins ---
+            const DEFAULT_ADMINS = [
+                { username: 'manager', password: 'manager123', role: 'manager' }, // Manager role
+                { username: 'admin', password: 'admin123', role: 'admin' },
+                { username: 'staff', password: 'staff123', role: 'admin' } // Another admin for testing
+            ];
+
+            let adminUsers = JSON.parse(localStorage.getItem('adminUsers')) || DEFAULT_ADMINS;
+            if (localStorage.getItem('adminUsers') === null) {
+                localStorage.setItem('adminUsers', JSON.stringify(DEFAULT_ADMINS));
+            }
+
+            // --- Global Data (Mock) ---
+            // Load meatItemsData from localStorage, or use default if not found
+            let meatItemsData = JSON.parse(localStorage.getItem('meatItemsData')) || [
+                { id: 1, name: 'Traditional Kurt', category: 'Kurt', stockStatus: 'IN_STOCK', price: 250.00, imageUrl: 'item/Kurt.jpeg' },
+                { id: 2, name: 'Spicy Tibs', category: 'Tibs', stockStatus: 'IN_STOCK', price: 300.50, imageUrl: 'item/Tibs.jpeg' },
+                { id: 3, name: 'Key Wot', category: 'Wot', stockStatus: 'IN_STOCK', price: 180.00, imageUrl: 'item/Wot.jpeg' },
+                { id: 4, name: 'Raw Kitfo', category: 'Kitfo', stockStatus: 'IN_STOCK', price: 400.00, imageUrl: 'item/Kitfo.jpeg' },
+                { id: 5, name: 'Lamb Kikil', category: 'Kikil', stockStatus: 'OUT_OF_STOCK', price: 350.75, imageUrl: 'item/Kikil.jpeg' },
+                { id: 6, name: 'Exotic Stew', category: 'Other', stockStatus: 'IN_STOCK', price: 500.00, imageUrl: 'item/exotic.jpeg' },
+            ];
+
+            // If localStorage was empty, save the default items
+            if (localStorage.getItem('meatItemsData') === null) {
+                localStorage.setItem('meatItemsData', JSON.stringify(meatItemsData));
+            }
+
+            // Load subscribers (name + phone) from localStorage; migrate from legacy 'subscribersPhoneNumbers'
+            let subscribers = JSON.parse(localStorage.getItem('subscribers')) || [];
+            (function migrateOldSubscribers(){
+                const legacy = JSON.parse(localStorage.getItem('subscribersPhoneNumbers') || 'null');
+                if (legacy && Array.isArray(legacy) && subscribers.length === 0) {
+                    subscribers = legacy.map(ph => ({ name: 'Subscriber', phone: ph }));
+                    localStorage.setItem('subscribers', JSON.stringify(subscribers));
+                    localStorage.removeItem('subscribersPhoneNumbers');
+                } else {
+                    localStorage.setItem('subscribers', JSON.stringify(subscribers));
+                }
+            })();
+            function saveSubscribers(){ localStorage.setItem('subscribers', JSON.stringify(subscribers)); }
+            let reservationsData = JSON.parse(localStorage.getItem('reservationsData')) || [
+                {
+                    id: 'res-1',
+                    customerName: 'Hiruy T Shita',
+                    phone: '7202803704',
+                    email: 'hiruytf@gmail.com',
+                    order: [{ name: 'Traditional Kurt', quantity: 1, price: 250.00 }],
+                    time: '8/22/2025, 9:15:23 PM',
+                    status: 'pending'
+                },
+                {
+                    id: 'res-2',
+                    customerName: 'Yonatan',
+                    phone: '0900843605',
+                    email: 'yonatanwondessen99@gmail.com',
+                    order: [{ name: 'Spicy Tibs', quantity: 1, price: 300.50 }],
+                    time: '8/22/2025, 8:56:37 PM',
+                    status: 'accepted'
+                },
+                {
+                    id: 'res-3',
+                    customerName: 'Yonatan',
+                    phone: '0900843605',
+                    email: 'yonatanwondessen99@gmail.com',
+                    order: [{ name: 'Key Wot', quantity: 2, price: 400.00 }],
+                    time: '8/22/2025, 8:00:00 PM',
+                    status: 'ready_for_pickup'
+                },
+            ];
+            localStorage.setItem('reservationsData', JSON.stringify(reservationsData));
+            function saveReservations(){ localStorage.setItem('reservationsData', JSON.stringify(reservationsData)); }
+
+            // --- DOM Elements ---
+            const customerViewBtn = document.getElementById('customer-view-btn');
+            const adminViewBtn = document.getElementById('admin-view-btn');
+            const customerViewSection = document.getElementById('customer-view');
+            const adminLoginSection = document.getElementById('admin-login');
+            const adminLoginUsernameInput = document.getElementById('admin-username');
+            const adminLoginPasswordInput = document.getElementById('admin-password');
+            const adminLoginForm = document.getElementById('admin-login-form');
+            const loginErrorMessage = document.getElementById('login-error-message');
+            const adminViewSection = document.getElementById('admin-view');
+            const adminLogoutBtn = document.getElementById('admin-logout-btn');
+            const changePasswordBtn = document.getElementById('change-password-btn');
+
+            // Change Username/Password Modal specific elements
+            const changePasswordModal = document.getElementById('change-password-modal');
+            const closePasswordModal = document.getElementById('close-password-modal');
+            const changePasswordForm = document.getElementById('change-password-form');
+            const currentUsernameDisplay = document.getElementById('current-username-display');
+            const newUsernameInput = document.getElementById('new-username-input');
+            const currentPasswordInput = document.getElementById('current-password');
+            const newPasswordInput = document.getElementById('new-password');
+            const confirmNewPasswordInput = document.getElementById('confirm-new-password');
+            const passwordChangeError = document.getElementById('password-change-error');
+
+            // Admin Management specific elements
+            const adminManagementSection = document.getElementById('admin-management-section');
+            const addAdminBtn = document.getElementById('add-admin-btn');
+            const removeAdminBtn = document.getElementById('remove-admin-btn');
+            const addAdminModal = document.getElementById('add-admin-modal');
+            const closeAddAdminModal = document.getElementById('close-add-admin-modal');
+            const addAdminForm = document.getElementById('add-admin-form');
+            const newAdminUsernameInput = document.getElementById('new-admin-username');
+            const newAdminPasswordInput = document.getElementById('new-admin-password');
+            const confirmNewAdminPasswordInput = document.getElementById('confirm-new-admin-password');
+            const addAdminError = document = document.getElementById('add-admin-error');
+            const removeAdminModal = document.getElementById('remove-admin-modal');
+            const closeRemoveAdminModal = document.getElementById('close-remove-admin-modal');
+            const removeAdminForm = document.getElementById('remove-admin-form');
+            const selectAdminToRemove = document.getElementById('select-admin-to-remove');
+            const removeAdminError = document = document.getElementById('remove-admin-error');
+
+            // Admin Subscribers Management Section
+            const adminSubscribersSection = document.getElementById('admin-subscribers-section');
+            const subscribersListDiv = document.getElementById('subscribers-list');
+
+            // Product Management specific elements
+            const addProductBtn = document.getElementById('add-product-btn');
+            const removeProductBtn = document = document.getElementById('remove-product-btn');
+
+            // Add Product Modal elements
+            const addProductModal = document.getElementById('add-product-modal');
+            const closeAddProductModal = document.getElementById('close-add-product-modal');
+            const addProductForm = document.getElementById('add-product-form');
+            const newProductNameInput = document.getElementById('new-product-name');
+            const newProductCategoryInput = document.getElementById('new-product-category');
+            const newProductPriceInput = document.getElementById('new-product-price');
+            const addProductError = document.getElementById('add-product-error');
+
+            // Edit Product Modal elements
+            const editProductModal = document.getElementById('edit-product-modal');
+            const closeEditProductModal = document.getElementById('close-edit-product-modal');
+            const editProductForm = document.getElementById('edit-product-form');
+            const editProductSelect = document.getElementById('edit-product-select');
+            const editProductNameInput = document.getElementById('edit-product-name');
+            const editProductCategoryInput = document.getElementById('edit-product-category');
+            const editProductPriceInput = document.getElementById('edit-product-price');
+            const editProductImageUrlInput = document.getElementById('edit-product-image-url');
+            const editProductError = document.getElementById('edit-product-error');
+
+            // Remove Product Modal elements
+            const removeProductModal = document.getElementById('remove-product-modal');
+            const closeRemoveProductModal = document.getElementById('close-remove-product-modal');
+            const removeProductForm = document.getElementById('remove-product-form');
+            const selectProductToRemove = document.getElementById('select-product-to-remove');
+            const removeProductError = document.getElementById('remove-product-error');
+
+
+            const meatItemsGrid = document.getElementById('meat-items-grid');
+            const reservationFormContainer = document.getElementById('reservation-form-container');
+            const selectedMeatNamesSpan = document.getElementById('selected-meat-names');
+            const reservationForm = document.getElementById('reservation-form');
+            const productManagementGrid = document.getElementById('product-management-grid');
+            const reservationsList = document.getElementById('reservations-list');
+            const feedbackMessageDiv = document.getElementById('feedback-message');
+
+            // Category Filter elements
+            const categoryFilterSelect = document.getElementById('category-filter');
+            let currentSelectedCategory = 'all'; // Default filter state
+
+            // Subscription form elements
+            const subscribeForm = document.getElementById('subscribe-form');
+            const subscriberPhoneInput = document.getElementById('subscriber-phone');
+            const subscriberNameInput = document.getElementById('subscriber-name'); // Added name input
+
+            // selectedMeats now stores objects { name: string, quantity: number, price: number, category: string }
+            let selectedMeats = [];
+            let loggedInAdmin = null;
+            let currentView = 'customer'; // Added currentView state
+
+            /**
+             * Generates a unique ID for new meat items.
+             * @returns {number} A unique integer ID.
+             */
+            function generateUniqueMeatItemId() {
+                const maxId = meatItemsData.reduce((max, item) => Math.max(max, item.id), 0);
+                return maxId + 1;
+            }
+
+            /**
+             * Persists the current state of meatItemsData to localStorage.
+             */
+            function saveMeatItemsData() {
+                localStorage.setItem('meatItemsData', JSON.stringify(meatItemsData));
+            }
+
+            /**
+             * Persists the current state of subscribers to localStorage.
+             */
+            function saveSubscribers() { localStorage.setItem('subscribers', JSON.stringify(subscribers)); }
+
+            /**
+             * Checks if an admin is authenticated.
+             * @returns {boolean} True if authenticated, false otherwise.
+             */
+            function isAdminAuthenticated() {
+                return sessionStorage.getItem('isAdminAuthenticated') === 'true' && sessionStorage.getItem('loggedInUsername') !== null;
+            }
+
+            /**
+             * Gets the role of the currently logged-in admin.
+             * @returns {string|null} The role string ('manager', 'admin') or null if not logged in.
+             */
+            function getLoggedInAdminRole() {
+                if (loggedInAdmin && loggedInAdmin.username === sessionStorage.getItem('loggedInUsername')) {
+                    return loggedInAdmin.role;
+                }
+                const username = sessionStorage.getItem('loggedInUsername');
+                if (username) {
+                    const admin = adminUsers.find(a => a.username === username);
+                    if (admin) {
+                        loggedInAdmin = { username: admin.username, password: admin.password, role: admin.role };
+                        return admin.role;
+                    }
+                }
+                return null;
+            }
+
+            /**
+             * Logs in an admin by setting session flags and global loggedInAdmin object.
+             * @param {object} adminUser - The admin user object { username, password, role }.
+             */
+            function loginAdmin(adminUser) {
+                sessionStorage.setItem('isAdminAuthenticated', 'true');
+                sessionStorage.setItem('loggedInUsername', adminUser.username);
+                loggedInAdmin = adminUser;
+            }
+
+            /**
+             * Logs out the admin by clearing session flags.
+             */
+            function logoutAdmin() {
+                sessionStorage.removeItem('isAdminAuthenticated');
+                sessionStorage.removeItem('loggedInUsername');
+                loggedInAdmin = null;
+                switchView('customer');
+                showFeedbackMessage('Logged out from Admin View.', 'info');
+            }
+
+            /**
+             * Switches between customer, admin login, and admin views.
+             * @param {string} view - 'customer' or 'admin'.
+             */
+            function switchView(view) {
+                currentView = view;
+                // Hide all main view sections and modals first
+                customerViewSection.classList.add('hidden');
+                adminLoginSection.classList.add('hidden');
+                adminViewSection.classList.add('hidden');
+                changePasswordModal.style.display = 'none';
+                addAdminModal.style.display = 'none';
+                removeAdminModal.style.display = 'none';
+                addProductModal.style.display = 'none';
+                editProductModal.style.display = 'none';
+                removeProductModal.style.display = 'none';
+
+                // Reset button styles
+                customerViewBtn.classList.remove('primary-button', 'bg-gray-200', 'text-gray-800');
+                customerViewBtn.classList.add('bg-gray-200', 'text-gray-800');
+                adminViewBtn.classList.remove('primary-button', 'bg-gray-200', 'text-gray-800');
+                adminViewBtn.classList.add('bg-gray-200', 'text-gray-800');
+
+                if (currentView === 'customer') {
+                    customerViewSection.classList.remove('hidden');
+                    customerViewBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                    customerViewBtn.classList.add('primary-button');
+                    renderCategoryFilter(); // Render category filter options
+                    renderMeatItems(currentSelectedCategory); // Render with current filter
+                    reservationFormContainer.classList.add('hidden'); // Ensure hidden on customer view load
+                    selectedMeats = []; // Clear all selected meats
+                    updateSelectedMeatsDisplay();
+                } else if (currentView === 'admin') {
+                    adminViewBtn.classList.remove('bg-gray-200', 'text-gray-800');
+                    adminViewBtn.classList.add('primary-button');
+                    if (isAdminAuthenticated()) {
+                        adminViewSection.classList.remove('hidden');
+                        renderAdminView();
+                    } else {
+                        adminLoginSection.classList.remove('hidden');
+                        loginErrorMessage.classList.add('hidden');
+                        adminLoginUsernameInput.value = '';
+                        adminLoginPasswordInput.value = '';
+                        adminLoginUsernameInput.focus();
+                    }
+                }
+            }
+
+            // --- Admin Login Form Handling ---
+            adminLoginForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const enteredUsername = adminLoginUsernameInput.value;
+                const enteredPassword = adminLoginPasswordInput.value;
+
+                const foundAdmin = adminUsers.find(
+                    admin => admin.username === enteredUsername && admin.password === enteredPassword
+                );
+
+                if (foundAdmin) {
+                    loginAdmin(foundAdmin);
+                    switchView('admin');
+                    showFeedbackMessage(`Welcome, ${foundAdmin.username}! Admin login successful.`, 'success');
+                } else {
+                    loginErrorMessage.classList.remove('hidden');
+                    showFeedbackMessage('Invalid username or password for Admin View.', 'error');
+                }
+            });
+
+            // --- Admin Logout Button Handling ---
+            adminLogoutBtn.addEventListener('click', logoutAdmin);
+
+            // --- Change Username/Password Modal & Form Handling ---
+            changePasswordBtn.addEventListener('click', () => {
+                if (!loggedInAdmin || !isAdminAuthenticated()) {
+                    showFeedbackMessage('No admin is currently logged in to change account details.', 'error');
+                    return;
+                }
+                changePasswordModal.style.display = 'flex';
+                passwordChangeError.classList.add('hidden');
+                currentUsernameDisplay.value = loggedInAdmin.username;
+                newUsernameInput.value = loggedInAdmin.username;
+                currentPasswordInput.value = '';
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+                newUsernameInput.focus();
+            });
+
+            closePasswordModal.addEventListener('click', () => {
+                changePasswordModal.style.display = 'none';
+            });
+
+            // Close modal if clicking outside the content for all modals
+            window.addEventListener('click', (event) => {
+                if (event.target === changePasswordModal) {
+                    changePasswordModal.style.display = 'none';
+                }
+                if (event.target === addAdminModal) {
+                    addAdminModal.style.display = 'none';
+                }
+                if (event.target === removeAdminModal) {
+                    removeAdminModal.style.display = 'none';
+                }
+                if (event.target === addProductModal) {
+                    addProductModal.style.display = 'none';
+                    addProductForm.reset(); // Clear form on close
+                }
+                if (event.target === editProductModal) {
+                    editProductModal.style.display = 'none';
+                    editProductForm.reset(); // Clear form on close
+                }
+                if (event.target === removeProductModal) {
+                    removeProductModal.style.display = 'none';
+                }
+            });
+
+            changePasswordForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                passwordChangeError.classList.add('hidden');
+
+                const newUsername = newUsernameInput.value.trim();
+                const currentP = currentPasswordInput.value;
+                const newP = newPasswordInput.value;
+                const confirmNewP = confirmNewPasswordInput.value;
+
+                if (!loggedInAdmin) {
+                    passwordChangeError.textContent = 'No admin logged in.';
+                    passwordChangeError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to update account: No admin logged in.', 'error');
+                    return;
+                }
+
+                const adminIndex = adminUsers.findIndex(admin => admin.username === loggedInAdmin.username);
+
+                if (adminIndex === -1) {
+                    passwordChangeError.textContent = 'Logged-in admin not found.';
+                    passwordChangeError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to update account: Logged-in admin not found.', 'error');
+                    return;
+                }
+
+                // --- Username Change Validation ---
+                if (newUsername === '') {
+                    passwordChangeError.textContent = 'New username cannot be empty.';
+                    passwordChangeError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to update account: Username cannot be empty.', 'error');
+                    return;
+                }
+                if (newUsername !== loggedInAdmin.username) {
+                    // Check if new username is unique among *other* admins
+                    const usernameExists = adminUsers.some(admin => admin.username === newUsername && admin.username !== loggedInAdmin.username);
+                    if (usernameExists) {
+                        passwordChangeError.textContent = 'This username is already taken by another admin.';
+                        passwordChangeError.classList.remove('hidden');
+                        showFeedbackMessage('Failed to update account: Username already taken.', 'error');
+                        return;
+                    }
+                }
+
+                // --- Password Change Validation ---
+                if (currentP !== adminUsers[adminIndex].password) {
+                    passwordChangeError.textContent = 'Current password is incorrect.';
+                    passwordChangeError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to update account: Current password incorrect.', 'error');
+                    return;
+                }
+
+                if (newP !== confirmNewP) {
+                    passwordChangeError.textContent = 'New password and confirmation do not match.';
+                    passwordChangeError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to update account: New passwords do not match.', 'error');
+                    return;
+                }
+
+                if (newP.length < 6) {
+                    passwordChangeError.textContent = 'New password must be at least 6 characters long.';
+                    passwordChangeError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to update account: New password too short.', 'error');
+                    return;
+                }
+
+                // --- Update Account Details ---
+                // Update username
+                if (newUsername !== loggedInAdmin.username) {
+                    adminUsers[adminIndex].username = newUsername;
+                    loggedInAdmin.username = newUsername;
+                    sessionStorage.setItem('loggedInUsername', newUsername); // Update session storage
+                }
+
+                // Update password
+                adminUsers[adminIndex].password = newP;
+                loggedInAdmin.password = newP; // Update global loggedInAdmin object too for consistency
+                localStorage.setItem('adminUsers', JSON.stringify(adminUsers)); // Save updated array
+
+                changePasswordModal.style.display = 'none';
+                showFeedbackMessage('Account details updated successfully!', 'success');
+            });
+
+            // --- Admin User Management Modals & Forms ---
+            addAdminBtn.addEventListener('click', () => {
+                addAdminModal.style.display = 'flex';
+                addAdminError.classList.add('hidden');
+                addAdminForm.reset();
+                newAdminUsernameInput.focus();
+            });
+
+            closeAddAdminModal.addEventListener('click', () => {
+                addAdminModal.style.display = 'none';
+            });
+
+            addAdminForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                addAdminError.classList.add('hidden');
+
+                const newUsername = newAdminUsernameInput.value.trim();
+                const newPassword = newAdminPasswordInput.value;
+                const confirmPassword = confirmNewAdminPasswordInput.value;
+
+                if (adminUsers.some(admin => admin.username === newUsername)) {
+                    addAdminError.textContent = 'Username already exists.';
+                    addAdminError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to add admin: Username already exists.', 'error');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    addAdminError.textContent = 'Password and confirmation do not match.';
+                    addAdminError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to add admin: Passwords do not match.', 'error');
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    addAdminError.textContent = 'Password must be at least 6 characters long.';
+                    addAdminError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to add admin: Password too short.', 'error');
+                    return;
+                }
+
+                adminUsers.push({ username: newUsername, password: newPassword, role: 'admin' });
+                localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
+                addAdminModal.style.display = 'none';
+                showFeedbackMessage(`Admin '${newUsername}' added successfully!`, 'success');
+                renderAdminView();
+            });
+
+            removeAdminBtn.addEventListener('click', () => {
+                removeAdminModal.style.display = 'flex';
+                removeAdminError.classList.add('hidden');
+                populateRemoveAdminSelect();
+            });
+
+            closeRemoveAdminModal.addEventListener('click', () => {
+                removeAdminModal.style.display = 'none';
+            });
+
+            function populateRemoveAdminSelect() {
+                selectAdminToRemove.innerHTML = '';
+                const managerCount = adminUsers.filter(admin => admin.role === 'manager').length;
+
+                adminUsers.forEach(admin => {
+                    const canRemove = !(loggedInAdmin && admin.username === loggedInAdmin.username) && !(admin.role === 'manager' && managerCount === 1);
+
+                    if (canRemove) {
+                        const option = document.createElement('option');
+                        option.value = admin.username;
+                        option.textContent = `${admin.username} (${admin.role})`;
+                        selectAdminToRemove.appendChild(option);
+                    }
+                });
+
+                if (selectAdminToRemove.options.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No other admins to remove';
+                    option.disabled = true;
+                    selectAdminToRemove.appendChild(option);
+                    removeAdminForm.querySelector('button[type="submit"]').disabled = true;
+                } else {
+                    removeAdminForm.querySelector('button[type="submit"]').disabled = false;
+                    selectAdminToRemove.disabled = false;
+                }
+            }
+
+
+            removeAdminForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                removeAdminError.classList.add('hidden');
+
+                const usernameToRemove = selectAdminToRemove.value;
+
+                if (!usernameToRemove) {
+                    removeAdminError.textContent = 'Please select an admin to remove.';
+                    removeAdminError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to remove admin: No admin selected.', 'error');
+                    return;
+                }
+
+                const adminToRemove = adminUsers.find(admin => admin.username === usernameToRemove);
+                const managerCount = adminUsers.filter(admin => admin.role === 'manager').length;
+
+                if (loggedInAdmin && adminToRemove.username === loggedInAdmin.username) {
+                    removeAdminError.textContent = 'You cannot remove your own account.';
+                    removeAdminError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to remove admin: Cannot remove self.', 'error');
+                    return;
+                }
+                if (adminToRemove.role === 'manager' && managerCount === 1) {
+                    removeAdminError.textContent = 'Cannot remove the last manager account.';
+                    removeAdminError.classList.remove('hidden');
+                    showFeedbackMessage('Failed to remove admin: Cannot remove last manager.', 'error');
+                    return;
+                }
+
+                adminUsers = adminUsers.filter(admin => admin.username !== usernameToRemove);
+                localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
+                removeAdminModal.style.display = 'none';
+                showFeedbackMessage(`Admin '${usernameToRemove}' removed successfully!`, 'success');
+                renderAdminView();
+            });
+
+            // --- Customer View Functions ---
+
+            /**
+             * Renders the category filter dropdown.
+             */
+            function renderCategoryFilter() {
+                categoryFilterSelect.innerHTML = '<option value="all">All Categories</option>'; // Always start with "All"
+
+                // Define the desired order of categories
+                const customCategoryOrder = ['Kurt', 'Tibs', 'Kitfo', 'Wot', 'Kikil', 'Other'];
+
+                // Get all unique categories present in meatItemsData
+                const uniqueCategoriesInData = [...new Set(meatItemsData.map(item => item.category))];
+
+                // Add categories to the dropdown in the custom order
+                customCategoryOrder.forEach(category => {
+                    if (uniqueCategoriesInData.includes(category)) { // Only add if present in data
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categoryFilterSelect.appendChild(option);
+                    }
+                });
+
+                // Add any other categories that might be in meatItemsData but not in the custom order (unlikely with fixed list)
+                uniqueCategoriesInData.forEach(category => {
+                    if (!customCategoryOrder.includes(category)) {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categoryFilterSelect.appendChild(option);
+                    }
+                });
+
+                categoryFilterSelect.value = currentSelectedCategory; // Set current selection
+            }
+
+            /**
+             * Renders the meat item cards in the customer view grid.
+             * @param {string} filterCategory - The category to filter by, or 'all'.
+             */
+            function renderMeatItems(filterCategory = 'all') {
+                meatItemsGrid.innerHTML = '';
+                const filteredItems = meatItemsData.filter(item =>
+                    filterCategory === 'all' || item.category === filterCategory
+                );
+
+                if (filteredItems.length === 0) {
+                    meatItemsGrid.innerHTML = '<p class="text-gray-600 text-center col-span-full">No items found for this category.</p>';
+                    return;
+                }
+
+                filteredItems.forEach(item => {
+                    // Find if this item is currently selected in the `selectedMeats` array
+                    const selectedMeatObject = selectedMeats.find(sItem => sItem.name === item.name);
+                    const isSelected = !!selectedMeatObject; // True if object found
+
+                    const meatItemDiv = document.createElement('div');
+                    const isDisabled = item.stockStatus === 'OUT_OF_STOCK';
+                    meatItemDiv.className = `relative flex flex-col items-center p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out cursor-pointer meat-item
+                                            ${isSelected ? 'selected' : (isDisabled ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white hover:bg-gray-50')}`;
+                    meatItemDiv.dataset.name = item.name;
+                    meatItemDiv.dataset.id = item.id; // Add data-id for easier lookup
+
+                    // Use item.imageUrl or a default placeholder
+                    const imageUrlToDisplay = item.imageUrl || 'https://placehold.co/150x150/CCCCCC/666666?text=No+Image';
+
+                    meatItemDiv.innerHTML = `
+                        <div class="w-36 h-36 rounded-full flex items-center justify-center mb-4 overflow-hidden bg-gray-200">
+                            <img src="${imageUrlToDisplay}" alt="${item.name}" class="object-cover w-full h-full"
+                                onerror="this.onerror=null;this.src='https://placehold.co/150x150/CCCCCC/666666?text=Image+Error';">
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">${item.name}</h3>
+                        <p class="text-gray-500 text-xs mb-2">${item.category}</p>
+                        <p class="text-gray-700 text-sm mb-2">Price: $${item.price ? item.price.toFixed(2) : 'N/A'}</p>
+                        ${isDisabled ? `
+                            <span class="text-red-600 font-bold">OUT OF STOCK</span>
+                        ` : `
+                            ${isSelected ? `
+                                <div class="flex items-center space-x-2 mt-4">
+                                    <label for="quantity-${item.id}" class="sr-only">Quantity for ${item.name}</label>
+                                    <input
+                                        type="number"
+                                        id="quantity-${item.id}"
+                                        value="${selectedMeatObject ? selectedMeatObject.quantity : 1}"
+                                        min="1"
+                                        class="w-20 px-2 py-1 border border-gray-300 rounded-md text-center text-gray-800 focus:outline-none focus:ring-purple-500 focus:border-purple-500 item-quantity-input"
+                                        data-item-name="${item.name}"
+                                    />
+                                </div>
+                            ` : `
+                                <button class="select-btn hover:underline font-medium focus:outline-none mt-4">
+                                    Select
+                                </button>
+                            `}
+                        `}
+                        ${isSelected ? `
+                            <div class="absolute top-2 right-2 text-green-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        ` : ''}
+                    `;
+                    if (!isDisabled) {
+                        meatItemDiv.addEventListener('click', (event) => {
+                            // Only toggle if not clicking directly on the quantity input
+                            if (!event.target.classList.contains('item-quantity-input')) {
+                                const name = event.currentTarget.dataset.name;
+                                toggleSelectedMeat(name);
+                            }
+                        });
+
+                        // Add event listener for quantity input directly
+                        const quantityInput = meatItemDiv.querySelector('.item-quantity-input');
+                        if (quantityInput) {
+                            quantityInput.addEventListener('change', (event) => {
+                                const newQuantity = parseInt(event.target.value, 10);
+                                updateSelectedMeatQuantity(item.name, newQuantity);
+                            });
+                            quantityInput.addEventListener('input', (event) => { // Also listen to input for live updates
+                                const newQuantity = parseInt(event.target.value, 10);
+                                updateSelectedMeatQuantity(item.name, newQuantity);
+                            });
+                        }
+                    }
+                    meatItemsGrid.appendChild(meatItemDiv);
+                });
+            }
+
+            /**
+             * Adds or removes a meat item from the selectedMeats array, or updates its quantity.
+             * @param {string} name - The name of the meat item to toggle or update.
+             */
+            function toggleSelectedMeat(name) {
+                const index = selectedMeats.findIndex(sItem => sItem.name === name);
+                const meatItem = meatItemsData.find(item => item.name === name);
+
+                if (index > -1) {
+                    selectedMeats.splice(index, 1); // Remove if already selected
+                } else {
+                    if (meatItem) {
+                        // Add with default quantity 1, price and category
+                        selectedMeats.push({ name: name, quantity: 1, price: meatItem.price, category: meatItem.category });
+                    }
+                }
+                updateSelectedMeatsDisplay();
+                renderMeatItems(currentSelectedCategory); // Re-render to update selection styles and quantity inputs
+            }
+
+            /**
+             * Updates the quantity of a selected meat item.
+             * If quantity is 0, removes the item from selectedMeats.
+             * @param {string} name - The name of the meat item.
+             * @param {number} quantity - The new quantity.
+             */
+            function updateSelectedMeatQuantity(name, quantity) {
+                const meatItem = meatItemsData.find(item => item.name === name);
+                if (!meatItem) return;
+
+                let currentQuantity = quantity;
+                if (isNaN(currentQuantity) || currentQuantity < 0) {
+                    currentQuantity = 0;
+                }
+
+                const existingItemIndex = selectedMeats.findIndex(sItem => sItem.name === name);
+
+                if (currentQuantity > 0) {
+                    if (existingItemIndex > -1) {
+                        selectedMeats[existingItemIndex].quantity = currentQuantity;
+                    } else {
+                        // This case should ideally not happen if toggling is done correctly,
+                        // but handles direct input of >0 quantity for an unselected item.
+                        selectedMeats.push({ name: name, quantity: currentQuantity, price: meatItem.price, category: meatItem.category });
+                    }
+                } else {
+                    if (existingItemIndex > -1) {
+                        selectedMeats.splice(existingItemIndex, 1);
+                    }
+                }
+                updateSelectedMeatsDisplay();
+                renderMeatItems(currentSelectedCategory); // Re-render to update selection styles
+            }
+
+            /**
+             * Updates the display of selected meat names and their quantities in the reservation form.
+             */
+            function updateSelectedMeatsDisplay() {
+                if (selectedMeats.length > 0) {
+                    // Calculate total price for display
+                    const total = selectedMeats.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+                    const displayNames = selectedMeats.map(item => `${item.name} (${item.quantity})`).join(', ');
+                    selectedMeatNamesSpan.textContent = `${displayNames} (Total: $${total.toFixed(2)})`;
+                    reservationFormContainer.classList.remove('hidden'); // Show the form if items are selected
+                } else {
+                    selectedMeatNamesSpan.textContent = 'None';
+                    reservationFormContainer.classList.add('hidden'); // Hide the form if no items are selected
+                }
+            }
+
+            /**
+             * Handles the submission of the reservation form.
+             * @param {Event} event - The form submission event.
+             */
+            reservationForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(reservationForm);
+
+                if (selectedMeats.length === 0) {
+                    showFeedbackMessage('Please select at least one meat item.', 'error');
+                    return;
+                }
+
+                // Check if all selected items have a quantity > 0
+                const hasInvalidQuantity = selectedMeats.some(item => item.quantity <= 0 || isNaN(item.quantity));
+                if (hasInvalidQuantity) {
+                    showFeedbackMessage('All selected items must have a quantity greater than zero.', 'error');
+                    return;
+                }
+
+                const reservationDetails = {
+                    id: `res-${Date.now()}`,
+                    customerName: formData.get('yourName'),
+                    phone: formData.get('phoneNumber'),
+                    email: formData.get('email'),
+                    order: selectedMeats, // Now directly use the selectedMeats array with quantities
+                    time: new Date().toLocaleString(),
+                    status: 'pending'
+                };
+
+                reservationsData.push(reservationDetails);
+                saveReservations();
+                console.log('Reservation Submitted:', reservationDetails);
+                showFeedbackMessage('Reservation submitted successfully!', 'success');
+                reservationForm.reset();
+                selectedMeats = [];
+                // Re-render to clear quantity inputs and reset select buttons
+                renderMeatItems(currentSelectedCategory);
+                updateSelectedMeatsDisplay(); // This will hide the form as selectedMeats is empty
+            });
+
+            // --- Subscription Form Handling (Customer View) ---
+            subscribeForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const name = subscriberNameInput.value.trim(); // Get name
+                const phoneNumber = subscriberPhoneInput.value.trim();
+
+                if (!name) {
+                    showFeedbackMessage('Please enter your name for the subscription.', 'error');
+                    return;
+                }
+
+                // Simple phone number validation (can be enhanced with regex)
+                if (!phoneNumber || !/^\+?[1-9]\d{1,14}$/.test(phoneNumber)) {
+                    showFeedbackMessage('Please enter a valid phone number (e.g., +15551234567).', 'error');
+                    return;
+                }
+
+                // Check if subscriber with the same phone number already exists
+                if (subscribers.some(s => s.phone === phoneNumber)) {
+                    showFeedbackMessage(`A subscriber with the phone number "${phoneNumber}" is already registered.`, 'info');
+                } else {
+                    subscribers.push({ name: name, phone: phoneNumber }); // Store name and phone
+                    saveSubscribers();
+                    showFeedbackMessage(`Successfully subscribed "${name}" (${phoneNumber}) for new product SMS notifications!`, 'success');
+                    subscriberNameInput.value = ''; // Clear name input
+                    subscriberPhoneInput.value = ''; // Clear phone input
+                    if (getLoggedInAdminRole() === 'manager') { // Update admin view if manager is logged in
+                        renderAdminSubscribers();
+                    }
+                }
+            });
+
+
+            // --- Admin View Functions ---
+
+            /**
+             * Renders the entire Admin View.
+             */
+            function renderAdminView() {
+                renderProductManagement();
+                renderCurrentReservations();
+
+                // Show/hide admin management section based on role
+                const adminRole = getLoggedInAdminRole();
+                if (adminRole === 'manager') {
+                    adminManagementSection.classList.remove('hidden');
+                    adminSubscribersSection.classList.remove('hidden'); // Show subscribers section to manager
+                    renderAdminSubscribers();
+                } else {
+                    adminManagementSection.classList.add('hidden');
+                    adminSubscribersSection.classList.add('hidden'); // Hide subscribers section for other admins
+                }
+            }
+
+            /**
+             * Renders the list of phone number subscribers in the admin view.
+             */
+            function renderAdminSubscribers() {
+                subscribersListDiv.innerHTML = '';
+                if (subscribers.length === 0) {
+                    subscribersListDiv.innerHTML = '<p class="text-gray-500 italic">No subscribers yet.</p>';
+                    return;
+                }
+
+                const ul = document.createElement('ul');
+                ul.className = 'list-disc pl-5 space-y-1 text-gray-700';
+                subscribers.forEach(s => {
+                    const li = document.createElement('li');
+                    li.textContent = `${s.name} (${s.phone})`; // Display name and phone
+                    ul.appendChild(li);
+                });
+                subscribersListDiv.appendChild(ul);
+            }
+
+            /**
+             * Renders the product management section in the admin view.
+             */
+            function renderProductManagement() {
+                productManagementGrid.innerHTML = '';
+                meatItemsData.forEach(item => {
+                    const productDiv = document.createElement('div');
+                    productDiv.className = `flex flex-col items-center p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out cursor-pointer
+                                            ${item.stockStatus === 'OUT_OF_STOCK' ? 'bg-red-50' : 'bg-white hover:bg-gray-50'}`;
+                    productDiv.dataset.id = item.id;
+                    productDiv.dataset.name = item.name; // Add name for easy lookup
+
+                    const stockText = item.stockStatus === 'IN_STOCK' ? 'IN STOCK' : 'OUT OF STOCK';
+                    const stockTextColor = item.stockStatus === 'IN_STOCK' ? 'text-green-600' : 'text-red-600';
+                    const toggleButtonText = item.stockStatus === 'IN_STOCK' ? 'Mark as Out of Stock' : 'Mark as In Stock';
+                    const toggleButtonClass = item.stockStatus === 'IN_STOCK' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600';
+
+                    // Use item.imageUrl or a default placeholder
+                    const imageUrlToDisplay = item.imageUrl || 'https://placehold.co/150x150/CCCCCC/666666?text=No+Image';
+
+                    productDiv.innerHTML = `
+                        <div class="w-24 h-24 rounded-full flex items-center justify-center mb-4 overflow-hidden bg-gray-200">
+                            <img src="${imageUrlToDisplay}" alt="${item.name}" class="object-cover w-full h-full"
+                                onerror="this.onerror=null;this.src='https://placehold.co/150x150/CCCCCC/666666?text=Image+Error';">
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">${item.name}</h3>
+                        <p class="text-gray-500 text-xs mb-2">${item.category}</p>
+                        <p class="text-gray-700 text-sm mb-2">Price: $${item.price ? item.price.toFixed(2) : 'N/A'}</p>
+                        <p class="text-sm font-bold ${stockTextColor} mb-4">${stockText}</p>
+                        <div class="flex flex-col space-y-2 w-full">
+                            <button class="w-full px-4 py-2 ${toggleButtonClass} text-white font-semibold rounded-md shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75 toggle-stock-btn">
+                                ${toggleButtonText}
+                            </button>
+                            <button class="w-full px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-75 edit-product-btn">
+                                Edit Product Details
+                            </button>
+                        </div>
+                    `;
+                    productManagementGrid.appendChild(productDiv);
+                });
+                addProductManagementEventListeners();
+            }
+
+            /**
+             * Function to send SMS notification via Twilio Function.
+             * This function makes an HTTP POST request to a Twilio Function endpoint.
+             *
+             * IMPORTANT: Replace 'YOUR_TWILIO_FUNCTION_URL' with the actual URL
+             * you get after deploying your Twilio Function (see instructions below).
+             *
+             * @param {string} phoneNumber - The phone number to send the SMS to (e.g., "+1234567890").
+             * @param {string} messageBody - The content of the SMS.
+             */
+            async function sendSmsNotification(phoneNumber, messageBody) {
+                const TWILIO_FUNCTION_URL = 'https://globyteconsulting-9498.twil.io/app'; 
+
+                if (TWILIO_FUNCTION_URL === 'YOUR_TWILIO_FUNCTION_URL') {
+                    console.error("Error: TWILIO_FUNCTION_URL is not configured. Please set it to your deployed Twilio Function URL.");
+                    showFeedbackMessage("SMS not sent: Twilio Function URL is not configured.", 'error');
+                    return { success: false, message: "Twilio Function URL not configured." };
+                }
+
+                try {
+                    showFeedbackMessage("Attempting to send SMS...", 'info');
+                    const response = await fetch(TWILIO_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            to: phoneNumber,
+                            body: messageBody
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        console.log('SMS Sent Successfully:', data);
+                        return { success: true, message: `SMS sent to ${phoneNumber}` };
+                    } else {
+                        console.error('Failed to send SMS:', data.error);
+                        return { success: false, message: `SMS failed for ${phoneNumber}: ${data.error}` };
+                    }
+                } catch (error) {
+                    console.error('Error making Twilio Function call:', error);
+                    return { success: false, message: `Error sending SMS to ${phoneNumber}: ${error.message}` };
+                }
+            }
+
+
+            /**
+             * Adds event listeners to the product management buttons.
+             */
+            function addProductManagementEventListeners() {
+                // Toggle Stock Status
+                document.querySelectorAll('.toggle-stock-btn').forEach(button => {
+                    button.addEventListener('click', async (event) => { // Made async here
+                        event.stopPropagation(); // Prevent edit modal from opening
+                        const productId = parseInt(event.target.closest('[data-id]').dataset.id);
+                        const productIndex = meatItemsData.findIndex(p => p.id === productId);
+
+                        if (productIndex !== -1) {
+                            const currentStatus = meatItemsData[productIndex].stockStatus;
+                            const newStatus = currentStatus === 'IN_STOCK' ? 'OUT_OF_STOCK' : 'IN_STOCK';
+                            const productName = meatItemsData[productIndex].name;
+
+                            meatItemsData[productIndex].stockStatus = newStatus;
+                            saveMeatItemsData(); // Save changes
+                            renderProductManagement();
+                            renderMeatItems(currentSelectedCategory); // Update customer view
+                            showFeedbackMessage(`Product "${productName}" status updated to ${newStatus.replace('_', ' ')}.`, 'info');
+
+                            // Notify subscribers if item is back in stock
+                            if (newStatus === 'IN_STOCK' && currentStatus === 'OUT_OF_STOCK' && subscribers.length > 0) {
+                                const messageBody = `Nega Butchery: Good news! 🎉 "${productName}" is back in stock! Order now!`;
+                                for (const s of subscribers) {
+                                    await sendSmsNotification(s.phone, messageBody);
+                                }
+                                showFeedbackMessage(`SMS notifications sent for "${productName}" back in stock to ${subscribers.length} subscribers.`, 'info');
+                            }
+                        }
+                    });
+                });
+
+                // Edit Product Details
+                document.querySelectorAll('.edit-product-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent parent div click
+                        const productId = parseInt(event.target.closest('[data-id]').dataset.id);
+                        const product = meatItemsData.find(p => p.id === productId);
+                        if (product) {
+                            // Populate the edit product modal with current data
+                            editProductSelect.innerHTML = `<option value="${product.id}">${product.name}</option>`; // Pre-select the item
+                            editProductSelect.value = product.id; // Ensure it's selected
+                            editProductNameInput.value = product.name;
+                            editProductCategoryInput.value = product.category; // Set category
+                            editProductPriceInput.value = product.price; // Set price
+                            editProductImageUrlInput.value = product.imageUrl || ''; // Handle potentially missing imageUrl
+                            editProductModal.style.display = 'flex';
+                            editProductError.classList.add('hidden');
+                        }
+                    });
+                });
+            }
+
+            // --- Product Management Modals & Forms ---
+
+            // Add Product
+            addProductBtn.addEventListener('click', () => {
+                addProductModal.style.display = 'flex';
+                addProductError.classList.add('hidden');
+                addProductForm.reset();
+                newProductNameInput.focus();
+                newProductCategoryInput.value = ''; // Reset category dropdown
+            });
+
+            closeAddProductModal.addEventListener('click', () => {
+                addProductModal.style.display = 'none';
+            });
+
+            addProductForm.addEventListener('submit', async (event) => { // Made async for fetch
+                event.preventDefault();
+                addProductError.classList.add('hidden');
+
+                const name = newProductNameInput.value.trim();
+                const category = newProductCategoryInput.value; // Get category
+                const price = parseFloat(newProductPriceInput.value);
+
+                if (name === '' || category === '' || isNaN(price) || price < 0) { // Updated validation
+                    addProductError.textContent = 'Product name, category, and valid price (non-negative) cannot be empty.';
+                    addProductError.classList.remove('hidden');
+                    return;
+                }
+
+                if (meatItemsData.some(item => item.name.toLowerCase() === name.toLowerCase())) {
+                    addProductError.textContent = 'A product with this name already exists.';
+                    addProductError.classList.remove('hidden');
+                    return;
+                }
+
+                const newItem = {
+                    id: generateUniqueMeatItemId(),
+                    name: name,
+                    category: category, // Add category to new item
+                    price: price,
+                    stockStatus: 'IN_STOCK', // New items are in stock by default
+                    imageUrl: 'https://placehold.co/150x150/CCCCCC/666666?text=New+Item' // Default placeholder image
+                };
+
+                meatItemsData.push(newItem);
+                saveMeatItemsData();
+                addProductModal.style.display = 'none';
+                showFeedbackMessage(`Product "${name}" added successfully!`, 'success');
+
+                // --- Simulated Twilio SMS Notification (Client-side ONLY for testing) ---
+                if (subscribers.length > 0) {
+                    const messageBody = `Nega Butchery: New item alert! Check out our new ${newItem.name} (${newItem.category}) for $${newItem.price.toFixed(2)}!`;
+                    for (const s of subscribers) {
+                        await sendSmsNotification(s.phone, messageBody);
+                    }
+                    showFeedbackMessage(`SMS notifications sent for new product to ${subscribers.length} subscribers.`, 'info');
+                } else {
+                    showFeedbackMessage('No subscribers to notify about the new product.', 'info');
+                }
+
+                renderAdminView(); // Re-render both admin and customer views
+                renderCategoryFilter(); // Update category filter in case new category was added
+                renderMeatItems(currentSelectedCategory);
+            });
+
+            // Edit Product
+            editProductSelect.addEventListener('change', (event) => {
+                const selectedId = parseInt(event.target.value, 10);
+                const product = meatItemsData.find(p => p.id === selectedId);
+                if (product) {
+                    editProductNameInput.value = product.name;
+                    editProductCategoryInput.value = product.category; // Set category
+                    editProductPriceInput.value = product.price;
+                    editProductImageUrlInput.value = product.imageUrl || ''; // Handle potentially missing imageUrl
+                } else {
+                    editProductNameInput.value = '';
+                    editProductCategoryInput.value = '';
+                    editProductPriceInput.value = '';
+                    editProductImageUrlInput.value = '';
+                }
+            });
+
+            closeEditProductModal.addEventListener('click', () => {
+                editProductModal.style.display = 'none';
+            });
+
+            editProductForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                editProductError.classList.add('hidden');
+
+                const selectedId = parseInt(editProductSelect.value, 10);
+                const newName = editProductNameInput.value.trim();
+                const newCategory = editProductCategoryInput.value; // Get new category
+                const newPrice = parseFloat(editProductPriceInput.value);
+                const newImageUrl = editProductImageUrlInput.value.trim();
+
+                if (newName === '' || newCategory === '' || isNaN(newPrice) || newPrice < 0 || newImageUrl === '') {
+                    editProductError.textContent = 'Product name, category, valid price (non-negative), and Image URL cannot be empty.';
+                    editProductError.classList.remove('hidden');
+                    return;
+                }
+
+                const productIndex = meatItemsData.findIndex(item => item.id === selectedId);
+
+                if (productIndex !== -1) {
+                    // Check for duplicate name, excluding the current item itself
+                    const nameExists = meatItemsData.some(item =>
+                        item.name.toLowerCase() === newName.toLowerCase() && item.id !== selectedId
+                    );
+                    if (nameExists) {
+                        editProductError.textContent = 'A product with this name already exists.';
+                        editProductError.classList.remove('hidden');
+                        return;
+                    }
+
+                    meatItemsData[productIndex].name = newName;
+                    meatItemsData[productIndex].category = newCategory; // Update category
+                    meatItemsData[productIndex].price = newPrice;
+                    meatItemsData[productIndex].imageUrl = newImageUrl;
+                    saveMeatItemsData(); // Save changes
+                    editProductModal.style.display = 'none';
+                    showFeedbackMessage(`Product "${newName}" updated successfully!`, 'success');
+                    renderAdminView(); // Re-render both admin and customer views
+                    renderCategoryFilter(); // Update category filter in case new category was added
+                    renderMeatItems(currentSelectedCategory);
+                } else {
+                    editProductError.textContent = 'Selected product not found.';
+                    editProductError.classList.remove('hidden');
+                }
+            });
+
+
+            // Remove Product
+            removeProductBtn.addEventListener('click', () => {
+                removeProductModal.style.display = 'flex';
+                removeProductError.classList.add('hidden');
+                populateRemoveProductSelect();
+            });
+
+            closeRemoveProductModal.addEventListener('click', () => {
+                removeProductModal.style.display = 'none';
+            });
+
+            function populateRemoveProductSelect() {
+                selectProductToRemove.innerHTML = '<option value="">-- Select a product --</option>'; // Clear and add placeholder
+                meatItemsData.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    selectProductToRemove.appendChild(option);
+                });
+                if (meatItemsData.length === 0) {
+                    removeProductForm.querySelector('button[type="submit"]').disabled = true;
+                    selectProductToRemove.disabled = true;
+                } else {
+                    removeProductForm.querySelector('button[type="submit"]').disabled = false;
+                    selectProductToRemove.disabled = false;
+                }
+            }
+
+            removeProductForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                removeProductError.classList.add('hidden');
+
+                const productIdToRemove = parseInt(selectProductToRemove.value, 10);
+
+                if (isNaN(productIdToRemove)) {
+                    removeProductError.textContent = 'Please select a product to remove.';
+                    removeProductError.classList.remove('hidden');
+                    return;
+                }
+
+                const initialLength = meatItemsData.length;
+                meatItemsData = meatItemsData.filter(item => item.id !== productIdToRemove);
+
+                if (meatItemsData.length < initialLength) {
+                    saveMeatItemsData(); // Save changes
+                    removeProductModal.style.display = 'none';
+                    showFeedbackMessage('Product removed successfully!', 'success');
+                    renderAdminView(); // Re-render both admin and customer views
+                    renderCategoryFilter(); // Update category filter in case a category became empty
+                    renderMeatItems(currentSelectedCategory);
+                } else {
+                    removeProductError.textContent = 'Product not found.';
+                    removeProductError.classList.remove('hidden');
+                }
+            });
+
+            /**
+             * Renders the current reservations list in the admin view.
+             */
+            function renderCurrentReservations() {
+                reservationsList.innerHTML = '';
+                if (reservationsData.length === 0) {
+                    reservationsList.innerHTML = '<p class="text-gray-500 text-center">No current reservations.</p>';
+                    return;
+                }
+
+                reservationsData.forEach(reservation => {
+                    const reservationDiv = document.createElement('div');
+                    reservationDiv.className = 'bg-white p-6 rounded-lg shadow-md border border-gray-200 relative';
+                    reservationDiv.dataset.id = reservation.id;
+
+                    let statusClass = '';
+                    switch (reservation.status) {
+                        case 'accepted':
+                            statusClass = 'status-accepted';
+                            break;
+                        case 'pending':
+                            statusClass = 'status-pending';
+                            break;
+                        case 'ready_for_pickup':
+                            statusClass = 'status-ready_for_pickup';
+                            break;
+                        default:
+                            statusClass = 'bg-gray-100 text-gray-800';
+                    }
+
+                    // Order display now correctly formats items with their quantities and prices
+                    const orderDisplay = reservation.order.map(item =>
+                        `${item.quantity} of ${item.name} ($${item.price ? (item.quantity * item.price).toFixed(2) : 'N/A'})`
+                    ).join(', ');
+
+                    const totalOrderPrice = reservation.order.reduce((sum, item) => sum + (item.quantity * (item.price || 0)), 0);
+
+
+                    const downloadButton = `<button class="btn-sm bg-gray-600 text-white rounded-md shadow-sm hover:bg-gray-700 transition-colors download-btn" data-action="download">
+                                                Download
+                                            </button>`;
+
+                    let actionButtonsHTML = '';
+                    if (reservation.status === 'pending') {
+                        actionButtonsHTML = `
+                            <button class="btn-sm primary-button rounded-md shadow-sm process-reservation-btn" data-action="accept">
+                                Accept Order
+                            </button>
+                            ${downloadButton}
+                        `;
+                    } else if (reservation.status === 'accepted') {
+                        actionButtonsHTML = `
+                            <button class="btn-sm primary-button rounded-md shadow-sm process-reservation-btn btn-disabled" data-action="accept" disabled>
+                                Accept Order
+                            </button>
+                            ${downloadButton}
+                            <button class="btn-sm bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 transition-colors process-reservation-btn" data-action="ready_for_pickup">
+                                Notify Ready for Pickup
+                            </button>
+                        `;
+                    } else if (reservation.status === 'ready_for_pickup') {
+                        actionButtonsHTML = `
+                            <button class="btn-sm primary-button rounded-md shadow-sm process-reservation-btn btn-disabled" data-action="accept" disabled>
+                                Accept Order
+                            </button>
+                            ${downloadButton}
+                        `;
+                    }
+
+                    reservationDiv.innerHTML = `
+                        <div class="absolute top-4 right-4 ${statusClass} status-tag">${reservation.status.replace(/_/g, ' ')}</div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-2">${reservation.customerName}</h4>
+                        <p class="text-sm text-gray-600"><strong>Phone:</strong> ${reservation.phone}</p>
+                        <p class="text-sm text-gray-600"><strong>Email:</strong> ${reservation.email}</p>
+                        <p class="text-sm text-gray-600"><strong>Order:</strong> ${orderDisplay}</p>
+                        <p class="text-sm text-gray-600"><strong>Total:</strong> $${totalOrderPrice.toFixed(2)}</p>
+                        <p class="text-sm text-gray-600 mb-4"><strong>Time:</strong> ${reservation.time}</p>
+
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            ${actionButtonsHTML}
+                        </div>
+                    `;
+                    reservationsList.appendChild(reservationDiv);
+                });
+                addReservationActionListeners();
+            }
+
+            /**
+             * Adds event listeners to reservation action buttons.
+             */
+            function addReservationActionListeners() {
+                document.querySelectorAll('.process-reservation-btn').forEach(button => {
+                    button.addEventListener('click', async (event) => {
+                        const reservationId = event.target.closest('[data-id]').dataset.id;
+                        const action = event.target.dataset.action;
+                        const reservationIndex = reservationsData.findIndex(r => r.id === reservationId);
+
+                        if (reservationIndex !== -1) {
+                            let newStatus = reservationsData[reservationIndex].status;
+                            let message = '';
+
+                            if (action === 'accept' && newStatus === 'pending') {
+                                newStatus = 'accepted';
+                                message = `Reservation for "${reservationsData[reservationIndex].customerName}" has been accepted.`;
+                            } else if (action === 'ready_for_pickup' && newStatus === 'accepted') {
+                                newStatus = 'ready_for_pickup';
+                                message = `Customer "${reservationsData[reservationIndex].customerName}" notified for pickup.`;
+                            
+                                const customer = reservationsData[reservationIndex];
+                                const smsBody = `Hi ${customer.customerName}, your order is ready for pickup at Nega Butchery!`;
+                                await sendSmsNotification(customer.phone, smsBody);
+                            }
+                            reservationsData[reservationIndex].status = newStatus;
+                            saveReservations();
+                            renderCurrentReservations();
+                            showFeedbackMessage(message, 'info');
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.download-btn').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const reservationId = event.target.closest('[data-id]').dataset.id;
+                        const reservation = reservationsData.find(r => r.id === reservationId);
+                        if (reservation) {
+                            const content = JSON.stringify(reservation, null, 2);
+                            const blob = new Blob([content], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `reservation_${reservation.id}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                            showFeedbackMessage(`Reservation ${reservation.id} downloaded.`, 'info');
+                        }
+                    });
+                });
+            }
+
+            /**
+             * Displays a feedback message to the user.
+             * @param {string} message - The message to display.
+             * @param {string} type - 'success', 'error', or 'info' for styling.
+             */
+            function showFeedbackMessage(message, type) {
+                feedbackMessageDiv.textContent = message;
+                feedbackMessageDiv.classList.remove('hidden', 'bg-green-500', 'bg-red-500', 'bg-blue-500', 'text-white');
+
+                switch (type) {
+                    case 'success':
+                        feedbackMessageDiv.classList.add('bg-green-500', 'text-white');
+                        break;
+                    case 'error':
+                        feedbackMessageDiv.classList.add('bg-red-500', 'text-white');
+                        break;
+                    case 'info':
+                        feedbackMessageDiv.classList.add('bg-blue-500', 'text-white');
+                        break;
+                    default:
+                        feedbackMessageDiv.classList.add('bg-gray-500', 'text-white');
+                }
+                feedbackMessageDiv.classList.remove('hidden');
+
+                setTimeout(() => {
+                    feedbackMessageDiv.classList.add('hidden');
+                }, 3000);
+            }
+
+            // --- Event Listeners for View Switching ---
+            customerViewBtn.addEventListener('click', () => switchView('customer'));
+            adminViewBtn.addEventListener('click', () => switchView('admin'));
+
+            // Event listener for category filter
+            categoryFilterSelect.addEventListener('change', (event) => {
+                currentSelectedCategory = event.target.value;
+                renderMeatItems(currentSelectedCategory);
+            });
+
+            // --- Initial Load ---
+            const storedUsername = sessionStorage.getItem('loggedInUsername');
+            if (storedUsername) {
+                const foundAdmin = adminUsers.find(admin => admin.username === storedUsername);
+                if (foundAdmin) {
+                    loggedInAdmin = foundAdmin;
+                }
+            }
+            switchView('customer');
+        });
+    </script>
+</body>
+</html>
