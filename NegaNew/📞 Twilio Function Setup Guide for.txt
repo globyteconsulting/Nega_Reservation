@@ -1,0 +1,149 @@
+📞 Twilio Function Setup Guide for Nega Butchery
+This guide will walk you through setting up a Twilio Serverless Function to send SMS notifications for your Nega Butchery web application. This is the secure way to integrate Twilio, as it keeps your sensitive API credentials safely on Twilio's servers, away from your client-side HTML code.
+
+Prerequisites
+Before you begin, make sure you have:
+
+A Twilio Account: If you don't have one, sign up at twilio.com.
+
+A Twilio Phone Number: You'll need to purchase a Twilio phone number from your Twilio Console. This number will be used as the sender for your SMS messages.
+
+Your Twilio Account SID and Auth Token: You can find these on your Twilio Dashboard. Keep them secure!
+
+Step-by-Step Setup
+1. Create a Twilio Service
+A Twilio Service acts as a container for your serverless functions and assets.
+
+Go to Functions > Overview in your Twilio Console.
+
+Click the "Create Service" button.
+
+Give your service a friendly name (e.g., NegaButcherySMS) and click "Create".
+
+2. Configure Environment Variables
+These variables securely store your Twilio credentials, making them accessible to your function without exposing them in your code.
+
+Inside your newly created service, navigate to "Settings" > "Environment Variables" on the left sidebar.
+
+Click "Add a New Environment Variable" and add the following three variables:
+
+Key: TWILIO_ACCOUNT_SID
+
+Value: Paste your Account SID from your Twilio Dashboard.
+
+Key: TWILIO_AUTH_TOKEN
+
+Value: Paste your Auth Token from your Twilio Dashboard.
+
+Key: TWILIO_PHONE_NUMBER
+
+Value: Enter your Twilio phone number (e.g., +1234567890). This is the number from which SMS messages will be sent.
+
+Remember to click "Save" after adding all variables.
+
+3. Create a New Function
+Now, let's create the function that will send the SMS messages.
+
+In your Twilio Service, click on "Add +" and select "Add Function".
+
+Choose the "Blank" template.
+
+Configure the Function Details:
+
+Path: Set this to /send-sms. This will be part of the URL your frontend calls.
+
+Access Control: For testing, you can choose "Public". For production, consider "Protected" and secure it with a custom API key for enhanced security.
+
+Paste the Code: Copy the JavaScript code provided below and paste it into the function editor.
+
+// Function: /send-sms
+// Path: /send-sms
+// Access Control: Public (or Protected with API Key for better security)
+
+exports.handler = async function(context, event, callback) {
+  // Extract Twilio credentials from Environment Variables (securely configured in Twilio Console)
+  const accountSid = context.TWILIO_ACCOUNT_SID;
+  const authToken = context.TWILIO_AUTH_TOKEN;
+  const twilioPhoneNumber = context.TWILIO_PHONE_NUMBER;
+
+  // Initialize the Twilio client
+  const client = require('twilio')(accountSid, authToken);
+
+  // Set CORS headers for local development (important for browser fetches)
+  const response = new Twilio.Response();
+  response.appendHeader('Access-Control-Allow-Origin', '*'); // Allow all origins for testing
+  response.appendHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
+  response.appendHeader('Content-Type', 'application/json');
+
+  // Handle preflight OPTIONS request
+  if (event.request.method === 'OPTIONS') {
+    return callback(null, response);
+  }
+
+  // Expect 'to' and 'body' in the POST request from your frontend
+  const { to, body } = event;
+
+  if (!to || !body) {
+    response.setStatusCode(400);
+    response.setBody({ success: false, error: 'Missing "to" or "body" parameters.' });
+    return callback(null, response);
+  }
+
+  try {
+    const message = await client.messages.create({
+      to: to, // The recipient's phone number
+      from: twilioPhoneNumber, // Your Twilio phone number
+      body: body // The SMS message content
+    });
+
+    console.log('SMS sent successfully:', message.sid);
+    response.setStatusCode(200);
+    response.setBody({ success: true, messageSid: message.sid });
+    return callback(null, response);
+
+  } catch (error) {
+    console.error('Error sending SMS:', error);
+    response.setStatusCode(500);
+    response.setBody({ success: false, error: error.message });
+    return callback(null, response);
+  }
+};
+
+4. Save and Deploy Your Function
+Click the "Save" button at the bottom of the function editor.
+
+Then, click the "Deploy All" button. This will make your function live and generate a unique URL for it.
+
+5. Update Your Frontend Code
+After deployment, Twilio will provide a unique URL for your /send-sms function.
+
+Go back to your Nega Butchery HTML file.
+
+Locate the sendSmsNotification function.
+
+Replace 'YOUR_TWILIO_FUNCTION_URL' with the actual URL you copied from your deployed Twilio Function.
+
+// In your HTML's <script> tag:
+async function sendSmsNotification(phoneNumber, messageBody) {
+    const TWILIO_FUNCTION_URL = 'YOUR_TWILIO_FUNCTION_URL'; // <--- PASTE YOUR TWILIO FUNCTION URL HERE
+
+    // ... (rest of the function code) ...
+}
+
+Testing Your Setup
+Open your nega_butchery_webpage.html file in your browser.
+
+Add a subscriber in the Customer View using a valid phone number (e.g., your own phone number for testing). Make sure to include the country code (e.g., +1234567890).
+
+Go to Admin View, log in, and try:
+
+Adding a new product.
+
+Toggling an existing product from "OUT OF STOCK" to "IN STOCK".
+
+Changing a reservation status to "Notify Ready for Pickup".
+
+You should now receive actual SMS messages on the phone numbers you've subscribed or used for reservations! Check your Twilio Console logs for any errors if messages aren't coming through.
+
+Feel free to ask if you run into any issues during the setup! Good luck with your testing! 👍
